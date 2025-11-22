@@ -1,0 +1,40 @@
+{
+	"schemaVersion": 1,
+	"id": "durabilityoverlay",
+	"version": "${version}",
+	"name": "Durability Overlay",
+	"description": "This Mod shows an overlay over armor to display durability",
+	"authors": [
+		"CoolIcee!"
+	],
+	"contact": {
+		"homepage": "https://fabricmc.net/",
+		"sources": "https://github.com/FabricMC/fabric-example-mod"
+	},
+	"license": "CC0-1.0",
+	"icon": "assets/durabilityoverlay/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"net.coolicee.durabilityoverlay.DurabilityOverlay"
+		],
+		"fabric-datagen": [
+			"net.coolicee.durabilityoverlay.DurabilityOverlayDataGenerator"
+		],
+      "client": [
+        "net.coolicee.durabilityoverlay.DurabilityOverlayClient"
+      ]
+	},
+	"mixins": [
+		"durabilityoverlay.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.18.1",
+		"minecraft": "~1.21",
+		"java": ">=21",
+		"fabric-api": "*"
+	},
+	"suggests": {
+		"another-mod": "*"
+	}
+}
