@@ -1,11 +1,11 @@
 {
 	"schemaVersion": 1,
 	"id": "durabilityoverlay",
-	"version": "${version}",
+	"version": "1.0.0",
 	"name": "Durability Overlay",
 	"description": "This Mod shows an overlay over armor to display durability",
 	"authors": [
-		"CoolIcee!"
+		"CoolIcee"
 	],
 	"contact": {
 		"homepage": "https://fabricmc.net/",
