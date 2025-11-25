@@ -3,34 +3,33 @@ package net.coolicee.durabilityoverlay;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.rendering.v1.ArmorRenderer;
 import net.minecraft.item.ArmorItem;
-import net.minecraft.item.Items;
+import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
+
+import java.util.HashSet;
+import java.util.Set;
 
 @SuppressWarnings("unused")
 public class DurabilityOverlayClient implements ClientModInitializer {
 
+    private final Set<Item> registeredArmor = new HashSet<>();
 
     @Override
     public void onInitializeClient() {
-        System.out.println("[DurabilityOverlayOverlay] Client armor tint loaded");
+        System.out.println("[DurabilityOverlay] Client armor tint initialized");
 
-        // Register for every armor item globally
-        for (var item : Registries.ITEM) {
+        for (Item item : Registries.ITEM) {
             if (item instanceof ArmorItem armor) {
-                ArmorRenderer.register(new DurabilityOverlayArmorRenderer(), armor);
+                if (!registeredArmor.contains(item)) {
+                    try {
+                        ArmorRenderer.register(new DurabilityOverlayArmorRenderer(), armor);
+                        registeredArmor.add(item);
+                    } catch (IllegalArgumentException e) {
+                        // Already registered, ignore
+                        System.out.println("[DurabilityOverlay] Renderer already exists for " + item);
+                    }
+                }
             }
         }
-        System.out.println("[DurabilityOverlay] Client armor tint loaded");
-
-        ArmorRenderer.register(new DurabilityOverlayArmorRenderer(), Items.DIAMOND_HELMET);
-        ArmorRenderer.register(new DurabilityOverlayArmorRenderer(), Items.DIAMOND_CHESTPLATE);
-        ArmorRenderer.register(new DurabilityOverlayArmorRenderer(), Items.DIAMOND_LEGGINGS);
-        ArmorRenderer.register(new DurabilityOverlayArmorRenderer(), Items.DIAMOND_BOOTS);
-
-        ArmorRenderer.register(new DurabilityOverlayArmorRenderer(), Items.NETHERITE_HELMET);
-        ArmorRenderer.register(new DurabilityOverlayArmorRenderer(), Items.NETHERITE_CHESTPLATE);
-        ArmorRenderer.register(new DurabilityOverlayArmorRenderer(), Items.NETHERITE_LEGGINGS);
-        ArmorRenderer.register(new DurabilityOverlayArmorRenderer(), Items.NETHERITE_BOOTS);
     }
-
 }
