@@ -1,6 +1,7 @@
 package net.coolicee.durabilityoverlay;
 
 import net.fabricmc.fabric.api.client.rendering.v1.ArmorRenderer;
+import net.minecraft.client.render.OverlayTexture;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
@@ -9,12 +10,13 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.ArmorItem;
-import net.minecraft.item.ArmorMaterials;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Identifier;
-import net.minecraft.client.render.OverlayTexture;
 
-public class DurabilityOverlayArmorRenderer implements ArmorRenderer{
+public class DurabilityOverlayArmorRenderer implements ArmorRenderer {
+
+    private static final Identifier OVERLAY_TEXTURE =
+            Identifier.of("durabilityoverlay", "textures/armor/durability_overlay_1.png");
 
     @Override
     public void render(
@@ -24,62 +26,50 @@ public class DurabilityOverlayArmorRenderer implements ArmorRenderer{
             LivingEntity entity,
             EquipmentSlot slot,
             int light,
-            BipedEntityModel<LivingEntity> contextModel
+            BipedEntityModel<LivingEntity> model
     ) {
-        if (!(stack.getItem() instanceof ArmorItem armorItem)) return;
+        if (!(stack.getItem() instanceof ArmorItem)) return;
 
-        Identifier tex = getArmorTextureSafe(armorItem, slot);
-        if (tex == null) return;
+        float durability = 1.0f - (float) stack.getDamage() / stack.getMaxDamage();
+        int color = durabilityToColor(durability);
 
-        // durability color → packed ARGB
-        int rgb = getDurabilityColor(stack);
-        int packedColor = 0xFF000000 | rgb;  // force 255 alpha
+        float r = ((color >> 16) & 0xFF) / 255f;
+        float g = ((color >> 8) & 0xFF) / 255f;
+        float b = (color & 0xFF) / 255f;
 
-        VertexConsumer vc =
-                vertexConsumers.getBuffer(RenderLayer.getEntityTranslucent(tex));
+        RenderLayer layer = RenderLayer.getArmorCutoutNoCull(OVERLAY_TEXTURE);
+        VertexConsumer consumer = vertexConsumers.getBuffer(layer);
 
-        // 1.21 render signature:
-        // render(matrices, vc, light, overlay, packedColor)
-        contextModel.render(
-                matrices,
-                vc,
-                light,
-                OverlayTexture.DEFAULT_UV,
-                packedColor
-        );
-    }
-
-    private int getDurabilityColor(ItemStack stack) {
-        if (!stack.isDamageable()) return 0xFFFFFF;
-        float p = 1f - stack.getDamage() / (float) stack.getMaxDamage();
-
-        if (p >= 0.75f) return 0x00FF00;
-        if (p >= 0.50f) return 0xFFFF00;
-        if (p >= 0.25f) return 0xFFA500;
-        return 0xFF0000;
-    }
-
-    private Identifier getArmorTextureSafe(ArmorItem armorItem, EquipmentSlot slot) {
-        String mat;
-        if (armorItem.getMaterial() == ArmorMaterials.NETHERITE) mat = "netherite";
-        else if (armorItem.getMaterial() == ArmorMaterials.DIAMOND) mat = "diamond";
-        else if (armorItem.getMaterial() == ArmorMaterials.IRON) mat = "iron";
-        else if (armorItem.getMaterial() == ArmorMaterials.GOLD) mat = "gold";
-        else if (armorItem.getMaterial() == ArmorMaterials.CHAIN) mat = "chainmail";
-        else if (armorItem.getMaterial() == ArmorMaterials.LEATHER) mat = "leather";
-        else mat = "diamond";
-
-        String layer = (slot == EquipmentSlot.LEGS) ? "2" : "1";
-
-        String path = "minecraft:textures/models/armor/" + mat + "_layer_" + layer + ".png";
-        Identifier id = Identifier.tryParse(path);
-
-        if (id == null) {
-            id = Identifier.tryParse(
-                    "minecraft:textures/models/armor/diamond_layer_1.png"
-            );
+        model.setVisible(false);
+        switch (slot) {
+            case HEAD -> {
+                model.head.visible = true;
+                model.hat.visible = true;
+            }
+            case CHEST -> {
+                model.body.visible = true;
+                model.rightArm.visible = true;
+                model.leftArm.visible = true;
+            }
+            case LEGS -> {
+                model.body.visible = true;
+                model.rightLeg.visible = true;
+                model.leftLeg.visible = true;
+            }
+            case FEET -> {
+                model.rightLeg.visible = true;
+                model.leftLeg.visible = true;
+            }
         }
 
-        return id;
+        consumer.color(r, g, b, 1.0f);
+        model.render(matrices, consumer, light, OverlayTexture.DEFAULT_UV);
+        consumer.color(1f, 1f, 1f, 1f); // reset
+    }
+
+    private int durabilityToColor(float durability) {
+        int red = (int) ((1.0f - durability) * 255);
+        int green = (int) (durability * 255);
+        return (red << 16) | (green << 8);
     }
 }
