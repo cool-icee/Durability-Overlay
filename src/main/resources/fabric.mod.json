@@ -21,9 +21,9 @@
 		"fabric-datagen": [
 			"net.coolicee.durabilityoverlay.DurabilityOverlayDataGenerator"
 		],
-      "client": [
-        "net.coolicee.durabilityoverlay.DurabilityOverlayClient"
-      ]
+		"client": [
+			"net.coolicee.durabilityoverlay.client.DurabilityOverlayClient"
+		]
 	},
 	"mixins": [
 		"durabilityoverlay.mixins.json"
