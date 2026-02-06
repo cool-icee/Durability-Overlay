@@ -11,6 +11,7 @@ import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.ArmorItem;
 import net.minecraft.item.ArmorMaterials;
+import net.minecraft.item.DyeableArmorItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Identifier;
 
@@ -41,6 +42,20 @@ public class DurabilityOverlayArmorRenderer implements ArmorRenderer {
                 !armorItem.getMaterial().equals(ArmorMaterials.TURTLE)) {
             Identifier layer2 = Identifier.of("minecraft", "textures/models/armor/" + matName + "_layer_2.png");
             ArmorRenderer.renderPart(matrices, vertexConsumers, light, stack, model, layer2);
+        }
+
+        // Render leather dye overlay if applicable
+        if (armorItem instanceof DyeableArmorItem dyeable) {
+            int dyeColor = dyeable.getColor(stack);
+            float r = ((dyeColor >> 16) & 255) / 255f;
+            float g = ((dyeColor >> 8) & 255) / 255f;
+            float b = (dyeColor & 255) / 255f;
+            Identifier leatherOverlay = Identifier.of("minecraft", "textures/models/armor/leather_layer_1_overlay.png");
+            RenderLayer leatherLayer = RenderLayer.getArmorCutoutNoCull(leatherOverlay);
+            VertexConsumer vc = vertexConsumers.getBuffer(leatherLayer);
+            vc.color(r, g, b, 1f);
+            model.render(matrices, vc, light, OverlayTexture.DEFAULT_UV);
+            vc.color(1f, 1f, 1f, 1f); // Reset
         }
 
         // Render durability overlay on top

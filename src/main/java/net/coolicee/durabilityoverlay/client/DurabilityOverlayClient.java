@@ -1,22 +1,35 @@
 package net.coolicee.durabilityoverlay.client;
 
+import net.coolicee.durabilityoverlay.client.DurabilityOverlayArmorRenderer;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.rendering.v1.ArmorRenderer;
 import net.minecraft.item.ArmorItem;
-import net.minecraft.item.ItemConvertible;
+import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class DurabilityOverlayClient implements ClientModInitializer {
+
+    private final Set<Item> registeredArmor = new HashSet<>();
+
     @Override
     public void onInitializeClient() {
-        System.out.println("[DurabilityOverlay] Initializing client renderer...");
+        System.out.println("[DurabilityOverlay] Client armor tint initialized");
 
-        ItemConvertible[] allArmor = Registries.ITEM.stream()
-                .filter(item -> item.asItem() instanceof ArmorItem)
-                .toArray(ItemConvertible[]::new);
-
-        ArmorRenderer.register(new DurabilityOverlayArmorRenderer(), allArmor);
-
-        System.out.println("[DurabilityOverlay] Registered renderer for " + allArmor.length + " armor items!");
+        for (Item item : Registries.ITEM) {
+            if (item instanceof ArmorItem armor) {
+                if (!registeredArmor.contains(item)) {
+                    try {
+                        ArmorRenderer.register(new DurabilityOverlayArmorRenderer(), armor);
+                        registeredArmor.add(item);
+                    } catch (IllegalArgumentException e) {
+                        // Already registered, ignore
+                        System.out.println("[DurabilityOverlay] Renderer already exists for " + item);
+                    }
+                }
+            }
+        }
     }
 }

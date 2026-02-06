@@ -63,3 +63,13 @@ publishing {
         }
     }
 }
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.fork = true
+    options.forkOptions.javaHome = file("/usr/lib/jvm/java-21-openjdk-amd64")
+}
